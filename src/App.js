@@ -1,4 +1,4 @@
-import ListaTarefas from './components/ListaTarefas';
+import Formulario from './components/Formulario';
 
 const App = () => {
   
@@ -7,7 +7,7 @@ const App = () => {
       <header className="App-header">
         <h1>Lista de Tarefas</h1>
       </header>
-      <ListaTarefas />
+      <Formulario />
     </div>
   );
 }
