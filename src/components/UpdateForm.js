@@ -7,6 +7,9 @@ const UpdateForm = ({ show, livro, onUpdate, onClose }) => {
   const [descricao, setDescricao] = useState("");
   const [capa, setCapa] = useState("");
   const [avaliacao, setAvaliacao] = useState("1,0");
+    const [autor, setAutor] = useState("");
+  const [dataPublicacao, setDataPublicacao] = useState("");
+  const [status, setStatus] = useState("para-ler");
   const [visible, setVisible] = useState(false);
 
   // Controla abrir e fechar com animação + trava scroll
@@ -31,17 +34,25 @@ const UpdateForm = ({ show, livro, onUpdate, onClose }) => {
           ? livro.avaliacao.toString().replace(".", ",")
           : "1,0"
       );
+       setAutor(livro.autor || "");
+      setDataPublicacao(livro.data_publicacao || "");
+      setStatus(livro.status || "para-ler");
     }
   }, [livro]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onUpdate({
+    onUpdate({  
+      id: livro.id,
       titulo,
       descricao,
       capa,
       avaliacao: parseFloat(avaliacao.replace(",", ".")) || 0,
+      autor,
+      data_publicacao: dataPublicacao,
+      status
     });
+    handleClose();
   };
 
   const handleClose = () => {
@@ -84,6 +95,36 @@ const UpdateForm = ({ show, livro, onUpdate, onClose }) => {
                     onChange={(e) => setTitulo(e.target.value)}
                     required
                   />
+                </div>
+                  <div className="mb-3">
+                  <label className="form-label">Autor</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={autor}
+                    onChange={(e) => setAutor(e.target.value)}
+                  />
+                </div>
+                 <div className="mb-3">
+                  <label className="form-label">Data de Publicação</label>
+                  <input
+                    type="date"
+                    className="form-control"
+                    value={dataPublicacao}
+                    onChange={(e) => setDataPublicacao(e.target.value)}
+                  />
+                </div>
+                 <div className="mb-3">
+                  <label className="form-label">Status</label>
+                  <select
+                    className="form-select"
+                    value={status}
+                    onChange={(e) => setStatus(e.target.value)}
+                  >
+                    <option value="para-ler">📚 Para Ler</option>
+                    <option value="lendo">📖 Lendo</option>
+                    <option value="concluido">✅ Concluído</option>
+                  </select>
                 </div>
                 <div className="mb-3">
                   <label className="form-label">Descrição</label>

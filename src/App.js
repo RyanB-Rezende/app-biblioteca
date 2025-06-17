@@ -3,6 +3,7 @@ import Header from './components/Header';
 import Footer from './components/Footer';
 import BookForm from './components/bookform';
 import BookList from './components/booklist';
+import { filterBooks } from './components/filters';
 import UpdateForm from './components/UpdateForm';
 import { addBook, getLivros, deleteLivros, updateLivros } from './components/book_services';
 
@@ -20,6 +21,9 @@ const App = () => {
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const booksPerPage = 12;
+  const [selectedStatus, setSelectedStatus] = useState("TODOS");
+const [selectedMinRating, setSelectedMinRating] = useState(0);
+const [selectedYear, setSelectedYear] = useState("");
 
   const searchInputRef = useRef(null);
   const autoCloseTimer = useRef(null);
@@ -30,31 +34,42 @@ const App = () => {
     setLivros(data);
   };
 
+  const handleStatusChange = async (id, status) => {
+    try {
+      await updateLivros(id, { status });
+      showMessage(`Status atualizado para ${status}`);
+      fetchLivros();
+    } catch (error) {
+      console.error(error);
+      showMessage("Erro ao atualizar status");
+    }
+  };
+
   const showMessage = (msg) => {
-  setMessage(msg);
-  setShowMessageBox(true);
-  setMessageCountdown(3); // 3 segundos
+    setMessage(msg);
+    setShowMessageBox(true);
+    setMessageCountdown(3); // 3 segundos
 
-  if (messageTimerRef.current) {
-    clearInterval(messageTimerRef.current);
-  }
+    if (messageTimerRef.current) {
+      clearInterval(messageTimerRef.current);
+    }
 
-  messageTimerRef.current = setInterval(() => {
-    setMessageCountdown((prev) => {
-      if (prev <= 1) {
-        clearInterval(messageTimerRef.current);
-        setMessageCountdown(0);
-        // Espera a transição do CSS
-        setTimeout(() => {
-          setShowMessageBox(false);
-          setMessage("");
-        }, 500); // 500ms = tempo do fade do CSS
-        return 0;
-      }
-      return prev - 1;
-    });
-  }, 1000);
-};
+    messageTimerRef.current = setInterval(() => {
+      setMessageCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(messageTimerRef.current);
+          setMessageCountdown(0);
+          // Espera a transição do CSS
+          setTimeout(() => {
+            setShowMessageBox(false);
+            setMessage("");
+          }, 500); // 500ms = tempo do fade do CSS
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
 
 
   const handleSave = async (book) => {
@@ -76,7 +91,7 @@ const App = () => {
 
   const handleUpdate = async (updatedBook) => {
     try {
-      await updateLivros(currentBook.id, updatedBook);
+      await updateLivros(currentBook.id, updatedBook); // ← aqui!
       showMessage("✅ Livro atualizado!");
       setShowUpdate(false);
       setCurrentBook(null);
@@ -86,6 +101,7 @@ const App = () => {
       showMessage("❌ Erro ao atualizar livro.");
     }
   };
+
 
   const handleDelete = async (id) => {
     if (window.confirm("Apagar este livro?")) {
@@ -110,9 +126,12 @@ const App = () => {
   }, []);
 
   // Filtro de pesquisa
-  const filteredBooks = livros.filter((livro) =>
-    livro.titulo.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+ const filteredBooks = filterBooks(livros, {
+  query: searchQuery,
+  status: selectedStatus,        // novo state para filtro por status
+  minRating: selectedMinRating,  // novo state para filtro por nota
+  anoPublicacao: selectedYear    // novo state para filtro por ano
+});
 
   // Paginação
   const indexOfLastBook = currentPage * booksPerPage;
@@ -173,13 +192,43 @@ const App = () => {
       <Header />
 
       {showMessageBox && (
-  <div className={`alert alert-info fade ${messageCountdown > 0 ? "show" : ""}`}>
-    {message}
-    <span className="ms-2 text-muted small">({messageCountdown})</span>
-  </div>
-)}
+        <div className={`alert alert-info fade ${messageCountdown > 0 ? "show" : ""}`}>
+          {message}
+          <span className="ms-2 text-muted small">({messageCountdown})</span>
+        </div>
+      )}
 
+        <select 
+  className="form-select"
+  value={selectedStatus}
+  onChange={(e) => setSelectedStatus(e.target.value)}
+>
+  <option value="TODOS">Todos</option>
+  <option value="PENDENTE">Para Ler</option>
+  <option value="LENDO">Lendo</option>
+  <option value="CONCLUIDO">Concluído</option>
+</select>
 
+{/* Exemplo de filtro por nota mínima */}
+<input
+  type="number"
+  placeholder="Avaliação mínima"
+  className="form-control"
+  value={selectedMinRating}
+  min={0}
+  max={5}
+  step={0.1}
+  onChange={(e) => setSelectedMinRating(parseFloat(e.target.value) || "")}
+/>
+
+{/* Exemplo de filtro por ano */}
+<input
+  type="number"
+  placeholder="Ano de publicação"
+  className="form-control"
+  value={selectedYear}
+  onChange={(e) => setSelectedYear(e.target.value)}
+/>
 
       <div className="mb-3 d-flex justify-content-between align-items-center">
         <button
@@ -213,8 +262,12 @@ const App = () => {
         </div>
       )}
 
-      <BookList livros={currentBooks} onEdit={handleEdit} onDelete={handleDelete} />
-
+      <BookList
+        livros={currentBooks}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        onStatusChange={handleStatusChange}
+      />
       {/* Botões de Paginação */}
       {totalPages > 1 && (
         <nav className="mt-4">
@@ -236,7 +289,6 @@ const App = () => {
         onUpdate={handleUpdate}
         onClose={() => setShowUpdate(false)}
       />
-
       <Footer />
     </div>
   );

@@ -6,6 +6,9 @@ const BookForm = ({ onSave, currentBook, onCancel }) => {
   const [descricao, setDescricao] = useState("");
   const [capa, setCapa] = useState("");
   const [avaliacao, setAvaliacao] = useState("1,0"); // string formatada com vírgula
+  const [autor, setAutor] = useState("");
+  const [dataPublicacao, setDataPublicacao] = useState("");
+  const [status, setStatus] = useState("para-ler");
 
   useEffect(() => {
     if (currentBook) {
@@ -18,11 +21,17 @@ const BookForm = ({ onSave, currentBook, onCancel }) => {
           ? currentBook.avaliacao.toString().replace(".", ",")
           : "1,0"
       );
+      setAutor(currentBook.autor || "");
+      setDataPublicacao(currentBook.data_publicacao || "");
+      setStatus("para-ler");
     } else {
       setTitulo("");
       setDescricao("");
       setCapa("");
       setAvaliacao("1,0");
+      setAutor("");
+      setDataPublicacao("");
+      setStatus("para-ler");
     }
   }, [currentBook]);
 
@@ -34,11 +43,17 @@ const BookForm = ({ onSave, currentBook, onCancel }) => {
       capa,
       // converte string "x,y" para float x.y
       avaliacao: parseFloat(avaliacao.replace(",", ".")) || 0,
+      autor,
+      data_publicacao: dataPublicacao,
+      status
     });
     setTitulo("");
     setDescricao("");
     setCapa("");
     setAvaliacao("1,0");
+    setAutor("");
+    setDataPublicacao("");
+    setStatus("para-ler");
   };
 
   return (
@@ -55,6 +70,40 @@ const BookForm = ({ onSave, currentBook, onCancel }) => {
           className="form-control"
           placeholder="Digite o título"
         />
+      </div>
+
+      <div className="mb-3">
+        <label className="form-label">Autor</label>
+        <input
+          type="text"
+          value={autor}
+          onChange={(e) => setAutor(e.target.value)}
+          className="form-control"
+          placeholder="Digite o autor"
+        />
+      </div>
+
+      <div className="mb-3">
+        <label className="form-label">Data de Publicação</label>
+        <input
+          type="date"
+          value={dataPublicacao}
+          onChange={(e) => setDataPublicacao(e.target.value)}
+          className="form-control"
+        />
+      </div>
+
+      <div className="mb-3">
+        <label className="form-label">Status</label>
+        <select
+          value={status}
+          onChange={(e) => setStatus(e.target.value)}
+          className="form-select"
+        >
+          <option value="para-ler">📚 Para Ler</option>
+          <option value="lendo">📖 Lendo</option>
+          <option value="concluido">✅ Concluído</option>
+        </select>
       </div>
 
       <div className="mb-3">

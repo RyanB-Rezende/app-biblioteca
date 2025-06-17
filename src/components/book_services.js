@@ -10,7 +10,9 @@ export const addBook = async (book) => {
       titulo: book.titulo, 
       descricao: book.descricao, 
       capa: book.capa, 
-      avaliacao: book.avaliacao 
+      avaliacao: book.avaliacao,
+      autor: book.autor,
+      data_publicacao: book.DataPublicacao
     }]);
 
   if (error) {
