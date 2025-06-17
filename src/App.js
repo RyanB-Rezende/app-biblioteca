@@ -13,7 +13,9 @@ const App = () => {
   const [formVisible, setFormVisible] = useState(false);
   const [currentBook, setCurrentBook] = useState(null);
   const [showUpdate, setShowUpdate] = useState(false);
-
+  const [showMessageBox, setShowMessageBox] = useState(false);
+  const [messageCountdown, setMessageCountdown] = useState(3); // segundos
+  const messageTimerRef = useRef(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -29,9 +31,31 @@ const App = () => {
   };
 
   const showMessage = (msg) => {
-    setMessage(msg);
-    setTimeout(() => setMessage(""), 3000);
-  };
+  setMessage(msg);
+  setShowMessageBox(true);
+  setMessageCountdown(3); // 3 segundos
+
+  if (messageTimerRef.current) {
+    clearInterval(messageTimerRef.current);
+  }
+
+  messageTimerRef.current = setInterval(() => {
+    setMessageCountdown((prev) => {
+      if (prev <= 1) {
+        clearInterval(messageTimerRef.current);
+        setMessageCountdown(0);
+        // Espera a transição do CSS
+        setTimeout(() => {
+          setShowMessageBox(false);
+          setMessage("");
+        }, 500); // 500ms = tempo do fade do CSS
+        return 0;
+      }
+      return prev - 1;
+    });
+  }, 1000);
+};
+
 
   const handleSave = async (book) => {
     try {
@@ -148,9 +172,14 @@ const App = () => {
     <div className="container mt-4">
       <Header />
 
-      {message && (
-        <div className="alert alert-info">{message}</div>
-      )}
+      {showMessageBox && (
+  <div className={`alert alert-info fade ${messageCountdown > 0 ? "show" : ""}`}>
+    {message}
+    <span className="ms-2 text-muted small">({messageCountdown})</span>
+  </div>
+)}
+
+
 
       <div className="mb-3 d-flex justify-content-between align-items-center">
         <button
@@ -160,21 +189,21 @@ const App = () => {
           {showForm ? "Fechar Formulário" : "Adicionar Livro"}
         </button>
 
-       <div className="ms-3 d-flex align-items-center">
-  <input
-    ref={searchInputRef}
-    type="text"
-    placeholder="Pesquisar livros..."
-    className={`form-control search-input ${isSearchExpanded ? "expanded" : ""}`}
-    value={searchQuery}
-    onFocus={handleSearchFocus}
-    onBlur={handleSearchBlur}
-    onChange={handleSearchChange}
-  />
-  <button className="btn btn-outline-secondary" onClick={handleToggleSearch}>
-    🔍
-  </button>
-</div>
+        <div className="ms-3 d-flex align-items-center">
+          <input
+            ref={searchInputRef}
+            type="text"
+            placeholder="Pesquisar livros..."
+            className={`form-control search-input ${isSearchExpanded ? "expanded" : ""}`}
+            value={searchQuery}
+            onFocus={handleSearchFocus}
+            onBlur={handleSearchBlur}
+            onChange={handleSearchChange}
+          />
+          <button className="btn btn-outline-secondary" onClick={handleToggleSearch}>
+            🔍
+          </button>
+        </div>
 
       </div>
 

@@ -79,3 +79,12 @@ code {
   width: 200px; /* ajuste o tamanho que quiser */
   opacity: 1;
 }
+
+.alert.fade {
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.alert.fade.show {
+  opacity: 1;
+}
