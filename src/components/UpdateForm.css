@@ -1,0 +1,109 @@
+/* Fundo escuro semi-transparente */
+.modal-backdrop-custom {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.5);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease;
+  z-index: 1040;
+}
+
+.modal-backdrop-custom.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Container da modal */
+.modal-custom {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.9);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  z-index: 1050;
+  width: 90%;
+  max-width: 700px;  /* aumenta o máximo */
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 0 15px rgba(0,0,0,0.3);
+  border-radius: 8px;
+  background-color: #fff; /* claro, se quiser adaptar para dark mode pode usar variáveis */
+}
+
+.modal-custom.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+/* Dialog dentro da modal */
+.modal-dialog {
+  margin: 0; /* remove margens padrões */
+  width: 100%; /* ocupa toda largura do container */
+}
+
+/* Conteúdo da modal */
+.modal-content {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header e Footer com espaçamento */
+.modal-header, .modal-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+.modal-footer {
+  border-top: none;
+  padding-top: 10px;
+  border-bottom: none;
+  margin-top: auto;
+}
+
+/* Ajustes para textarea e inputs */
+.modal-body .form-control {
+  resize: vertical;
+}
+
+/* Botão de fechar */
+.btn-close {
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* Responsividade */
+@media (max-width: 576px) {
+  .modal-custom {
+    width: 95%;
+    max-width: none;
+    max-height: 85vh;
+  }
+}
+
+/* Footer da modal com espaçamento interno e separação entre botões */
+.modal-footer {
+  display: flex;
+  justify-content: flex-end; /* alinha os botões à direita */
+  gap: 10px; /* espaçamento horizontal entre os botões */
+  padding-top: 15px; /* mais espaço acima do footer */
+  border-top: 1px solid #ddd;
+  margin-top: 20px; /* distância do conteúdo acima */
+}
+
+.modal-footer .btn-primary {
+  min-width: 120px; /* largura mínima para não ficar miudinho */
+}

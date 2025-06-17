@@ -1,22 +1,28 @@
 import { useState, useEffect } from "react";
+import AvaliacaoInput from "./AvaliacaoInput"; // importa o input customizado
 
 const BookForm = ({ onSave, currentBook, onCancel }) => {
   const [titulo, setTitulo] = useState("");
   const [descricao, setDescricao] = useState("");
   const [capa, setCapa] = useState("");
-  const [avaliacao, setAvaliacao] = useState(1);
+  const [avaliacao, setAvaliacao] = useState("1,0"); // string formatada com vírgula
 
   useEffect(() => {
     if (currentBook) {
       setTitulo(currentBook.titulo);
       setDescricao(currentBook.descricao);
       setCapa(currentBook.capa);
-      setAvaliacao(currentBook.avaliacao);
+      // formata para string com vírgula (ex: "3,5")
+      setAvaliacao(
+        currentBook.avaliacao !== undefined
+          ? currentBook.avaliacao.toString().replace(".", ",")
+          : "1,0"
+      );
     } else {
       setTitulo("");
       setDescricao("");
       setCapa("");
-      setAvaliacao(1);
+      setAvaliacao("1,0");
     }
   }, [currentBook]);
 
@@ -26,12 +32,13 @@ const BookForm = ({ onSave, currentBook, onCancel }) => {
       titulo,
       descricao,
       capa,
-      avaliacao: parseFloat(avaliacao),
+      // converte string "x,y" para float x.y
+      avaliacao: parseFloat(avaliacao.replace(",", ".")) || 0,
     });
     setTitulo("");
     setDescricao("");
     setCapa("");
-    setAvaliacao(1);
+    setAvaliacao("1,0");
   };
 
   return (
@@ -72,14 +79,10 @@ const BookForm = ({ onSave, currentBook, onCancel }) => {
       </div>
 
       <div className="mb-3">
-        <label className="form-label">Avaliação (1 a 5)</label>
-        <input
-          type="number"
+        <label className="form-label">Avaliação (0,0 a 5,0)</label>
+        <AvaliacaoInput
           value={avaliacao}
-          min="1"
-          max="5"
-          step="0.1"
-          onChange={(e) => setAvaliacao(e.target.value)}
+          onChange={setAvaliacao}
           className="form-control"
         />
       </div>
