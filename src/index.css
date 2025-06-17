@@ -62,3 +62,20 @@ code {
   transform: scale(0.95);
 }
 
+/* Animação suave de expansão do campo de pesquisa */
+.search-container {
+  display: flex;
+  align-items: center;
+}
+
+.search-input {
+  width: 0;
+  opacity: 0;
+  transition: width 0.4s ease, opacity 0.3s ease;
+  margin-right: 0.5rem;
+}
+
+.search-input.expanded {
+  width: 200px; /* ajuste o tamanho que quiser */
+  opacity: 1;
+}

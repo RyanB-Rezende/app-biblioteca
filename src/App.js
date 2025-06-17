@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Header from './components/Header';
 import Footer from './components/Footer';
 import BookForm from './components/bookform';
@@ -10,9 +10,17 @@ const App = () => {
   const [livros, setLivros] = useState([]);
   const [message, setMessage] = useState("");
   const [showForm, setShowForm] = useState(false);
-  const [formVisible, setFormVisible] = useState(false); // controle visibilidade com delay
+  const [formVisible, setFormVisible] = useState(false);
   const [currentBook, setCurrentBook] = useState(null);
   const [showUpdate, setShowUpdate] = useState(false);
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const booksPerPage = 12;
+
+  const searchInputRef = useRef(null);
+  const autoCloseTimer = useRef(null);
 
   // Busca livros
   const fetchLivros = async () => {
@@ -27,10 +35,10 @@ const App = () => {
 
   const handleSave = async (book) => {
     try {
-      await addBook(book);  // Espera o livro ser adicionado
+      await addBook(book);
       showMessage("✅ Livro adicionado!");
       setShowForm(false);
-      await fetchLivros();  // Atualiza a lista de livros
+      await fetchLivros();
     } catch (error) {
       console.error(error);
       showMessage("❌ Erro ao salvar livro.");
@@ -68,8 +76,7 @@ const App = () => {
     if (showForm) {
       setFormVisible(true);
     } else {
-      // Delay para manter o componente enquanto anima
-      const timer = setTimeout(() => setFormVisible(false), 300); // mesma duração do CSS
+      const timer = setTimeout(() => setFormVisible(false), 300);
       return () => clearTimeout(timer);
     }
   }, [showForm]);
@@ -78,35 +85,121 @@ const App = () => {
     fetchLivros();
   }, []);
 
+  // Filtro de pesquisa
+  const filteredBooks = livros.filter((livro) =>
+    livro.titulo.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Paginação
+  const indexOfLastBook = currentPage * booksPerPage;
+  const indexOfFirstBook = indexOfLastBook - booksPerPage;
+  const currentBooks = filteredBooks.slice(indexOfFirstBook, indexOfLastBook);
+  const totalPages = Math.ceil(filteredBooks.length / booksPerPage);
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  // Expansão/retração do search + timer
+  const handleToggleSearch = () => {
+    if (!isSearchExpanded) {
+      setIsSearchExpanded(true);
+      searchInputRef.current?.focus();
+      startAutoCloseTimer();
+    } else {
+      setIsSearchExpanded(false);
+      setSearchQuery("");
+      clearAutoCloseTimer();
+    }
+  };
+
+  const startAutoCloseTimer = () => {
+    clearAutoCloseTimer();
+    autoCloseTimer.current = setTimeout(() => {
+      setIsSearchExpanded(false);
+      setSearchQuery("");
+    }, 10000);
+  };
+
+  const clearAutoCloseTimer = () => {
+    if (autoCloseTimer.current) {
+      clearTimeout(autoCloseTimer.current);
+      autoCloseTimer.current = null;
+    }
+  };
+
+  const handleSearchFocus = () => {
+    clearAutoCloseTimer();
+  };
+
+  const handleSearchBlur = () => {
+    if (searchQuery.trim() === "") {
+      startAutoCloseTimer();
+    }
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+    setCurrentPage(1);
+    clearAutoCloseTimer();
+  };
+
   return (
     <div className="container mt-4">
       <Header />
 
       {message && (
-        <div className="alert alert-info">
-          {message}
-        </div>
+        <div className="alert alert-info">{message}</div>
       )}
 
-      <div className="mb-3">
+      <div className="mb-3 d-flex justify-content-between align-items-center">
         <button
           className={`btn ${showForm ? "btn-secondary" : "btn-primary"}`}
           onClick={() => setShowForm(!showForm)}
         >
           {showForm ? "Fechar Formulário" : "Adicionar Livro"}
         </button>
+
+       <div className="ms-3 d-flex align-items-center">
+  <input
+    ref={searchInputRef}
+    type="text"
+    placeholder="Pesquisar livros..."
+    className={`form-control search-input ${isSearchExpanded ? "expanded" : ""}`}
+    value={searchQuery}
+    onFocus={handleSearchFocus}
+    onBlur={handleSearchBlur}
+    onChange={handleSearchChange}
+  />
+  <button className="btn btn-outline-secondary" onClick={handleToggleSearch}>
+    🔍
+  </button>
+</div>
+
       </div>
 
-      {/* Renderiza o formulário enquanto estiver visível, e controla animação com classe */}
       {formVisible && (
         <div className={`form-animation ${showForm ? "show" : "hide"}`}>
-          <BookForm
-            onSave={handleSave}
-          />
+          <BookForm onSave={handleSave} />
         </div>
       )}
 
-      <BookList livros={livros} onEdit={handleEdit} onDelete={handleDelete} />
+      <BookList livros={currentBooks} onEdit={handleEdit} onDelete={handleDelete} />
+
+      {/* Botões de Paginação */}
+      {totalPages > 1 && (
+        <nav className="mt-4">
+          <ul className="pagination justify-content-center">
+            {Array.from({ length: totalPages }, (_, i) => (
+              <li key={i} className={`page-item ${currentPage === i + 1 ? "active" : ""}`}>
+                <button className="page-link" onClick={() => handlePageChange(i + 1)}>
+                  {i + 1}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )}
 
       <UpdateForm
         show={showUpdate}
