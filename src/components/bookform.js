@@ -1,28 +1,34 @@
-import { useState, useEffect } from "react"; 
-import AvaliacaoInput from "./AvaliacaoInput"; // importa o input customizado
+import { useState, useEffect } from "react";
+import AvaliacaoInput from "./AvaliacaoInput";
 import { normalizeYear } from "../utils/YearUtils";
 
 const BookForm = ({ onSave, currentBook, onCancel }) => {
+  // --- Todos os States primeiro ---
   const [titulo, setTitulo] = useState("");
   const [descricao, setDescricao] = useState("");
   const [capa, setCapa] = useState("");
-  const [avaliacao, setAvaliacao] = useState("1,0"); // string formatada com vírgula
+  const [avaliacao, setAvaliacao] = useState("1,0");
   const [autor, setAutor] = useState("");
   const [dataPublicacao, setDataPublicacao] = useState("");
   const [status, setStatus] = useState("para-ler");
 
+  // --- useEffect para preencher quando editar ---
   useEffect(() => {
     if (currentBook) {
-      setTitulo(currentBook.titulo);
-      setDescricao(currentBook.descricao);
-      setCapa(currentBook.capa);
+      setTitulo(currentBook.titulo || "");
+      setDescricao(currentBook.descricao || "");
+      setCapa(currentBook.capa || "");
       setAvaliacao(
         currentBook.avaliacao !== undefined
           ? currentBook.avaliacao.toString().replace(".", ",")
           : "1,0"
       );
       setAutor(currentBook.autor || "");
-      setDataPublicacao(currentBook.data_publicacao ? currentBook.data_publicacao.toString() : "");
+      setDataPublicacao(
+        currentBook.data_publicacao
+          ? currentBook.data_publicacao.toString().slice(0, 4)
+          : ""
+      );
       setStatus(currentBook.status || "para-ler");
     } else {
       setTitulo("");
@@ -35,30 +41,30 @@ const BookForm = ({ onSave, currentBook, onCancel }) => {
     }
   }, [currentBook]);
 
+  // --- Handler depois dos States e useEffect ---
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // normaliza o ano ao enviar o formulário
     const anoNormalizado = normalizeYear(dataPublicacao);
-
     if (anoNormalizado === null) {
       alert(
-        `Ano inválido! Use um ano entre 1400 e ${new Date().getFullYear()} (4 dígitos).`
+        `Ano inválido! Use um ano entre 1400 e ${new Date().getFullYear()}.`
       );
       return;
     }
 
+    // 📌 Garantir int para campo INT no banco
     onSave({
       titulo,
       descricao,
       capa,
       avaliacao: parseFloat(avaliacao.replace(",", ".")) || 0,
       autor,
-      data_publicacao: anoNormalizado,
+      data_publicacao: parseInt(anoNormalizado, 10),
       status,
     });
 
-    // reset campos
+    // Limpa campos
     setTitulo("");
     setDescricao("");
     setCapa("");
@@ -68,6 +74,7 @@ const BookForm = ({ onSave, currentBook, onCancel }) => {
     setStatus("para-ler");
   };
 
+  // --- JSX ---
   return (
     <form onSubmit={handleSubmit} className="card p-4 shadow-sm mb-4">
       <h4>{currentBook ? "Editar Livro" : "Novo Livro"}</h4>
@@ -105,7 +112,6 @@ const BookForm = ({ onSave, currentBook, onCancel }) => {
           placeholder="Ex: 2024"
           onChange={(e) => {
             const val = e.target.value;
-            // permite só números e vazio
             if (/^\d*$/.test(val)) {
               setDataPublicacao(val);
             }
@@ -162,7 +168,11 @@ const BookForm = ({ onSave, currentBook, onCancel }) => {
       </button>
 
       {currentBook && (
-        <button type="button" className="btn btn-secondary" onClick={onCancel}>
+        <button
+          type="button"
+          className="btn btn-secondary"
+          onClick={onCancel}
+        >
           <i className="bi bi-x-circle me-1"></i>
           Cancelar
         </button>

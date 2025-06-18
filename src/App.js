@@ -23,7 +23,7 @@ const App = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const booksPerPage = 12;
 
-  // ✅ ÚNICO STATE DE FILTROS
+  // ÚNICO STATE DE FILTROS
   const [filtros, setFiltros] = useState({
     status: "TODOS",
     minRating: 0,
@@ -126,7 +126,7 @@ const App = () => {
     fetchLivros();
   }, []);
 
-  // ✅ Usa o state 'filtros'
+  // Usa o state 'filtros'
   const filteredBooks = filterBooks(livros, {
     query: searchQuery,
     status: filtros.status,
@@ -205,7 +205,7 @@ const App = () => {
           {showForm ? "Fechar Formulário" : "Adicionar Livro"}
         </button>
 
-        <div className="ms-3 d-flex align-items-center">
+        <div className="ms-3 d-flex align-items-center gap-2">
           <input
             ref={searchInputRef}
             type="text"
@@ -216,17 +216,10 @@ const App = () => {
             onBlur={handleSearchBlur}
             onChange={handleSearchChange}
           />
+
           <button className="btn btn-outline-secondary" onClick={handleToggleSearch}>
             🔍
           </button>
-        </div>
-        <div>
-          <FiltersWindow
-            visible={filtersVisible}
-            onClose={() => setFiltersVisible(false)}
-            filtros={filtros}
-            setFiltros={setFiltros}
-          />
 
           <button
             className="btn btn-outline-secondary"
@@ -264,12 +257,20 @@ const App = () => {
         </nav>
       )}
 
+      <FiltersWindow
+        visible={filtersVisible}
+        onClose={() => setFiltersVisible(false)}
+        filtros={filtros}
+        setFiltros={setFiltros}
+      />
+
       <UpdateForm
         show={showUpdate}
         livro={currentBook}
         onUpdate={handleUpdate}
         onClose={() => setShowUpdate(false)}
       />
+
       <Footer />
     </div>
   );

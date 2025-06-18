@@ -12,7 +12,8 @@ export const addBook = async (book) => {
       capa: book.capa, 
       avaliacao: book.avaliacao,
       autor: book.autor,
-      data_publicacao: book.DataPublicacao
+      data_publicacao: book.data_publicacao // certo, bate com o que foi enviado pelo formulário
+
     }]);
 
   if (error) {

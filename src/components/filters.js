@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import AvaliacaoInput from "./AvaliacaoInput";
 
 /**
  * Filtra livros com base em múltiplos critérios.
@@ -46,7 +47,6 @@ export const filterBooks = (livros, filtros) => {
 export const FiltersWindow = ({ visible, onClose, filtros, setFiltros }) => {
   const [internalVisible, setInternalVisible] = useState(visible);
 
-  // Sincroniza internalVisible sempre que visible mudar
   useEffect(() => {
     setInternalVisible(visible);
   }, [visible]);
@@ -56,6 +56,15 @@ export const FiltersWindow = ({ visible, onClose, filtros, setFiltros }) => {
     setTimeout(() => {
       onClose();
     }, 300);
+  };
+
+  const handleReset = () => {
+    setFiltros({
+      status: "TODOS",
+      minRating: 0,
+      anoPublicacao: "",
+      query: "",
+    });
   };
 
   return (
@@ -89,35 +98,47 @@ export const FiltersWindow = ({ visible, onClose, filtros, setFiltros }) => {
               <option value="CONCLUIDO">Concluído</option>
             </select>
 
-            <label className="form-label">Avaliação Mínima</label>
-            <input
-              type="number"
-              min={0}
-              max={5}
-              step={0.1}
-              className="form-control mb-3"
-              value={filtros.minRating}
-              onChange={(e) =>
-                setFiltros((prev) => ({
-                  ...prev,
-                  minRating: parseFloat(e.target.value) || 0,
-                }))
-              }
-            />
+            <div className="mb-3">
+              <label className="form-label">Avaliação Mínima</label>
+              <AvaliacaoInput
+                value={filtros.minRating}
+                onChange={(valor) =>
+                  setFiltros((prev) => ({
+                    ...prev,
+                    minRating: valor || 0,
+                  }))
+                }
+                className="form-control"
+              />
+            </div>
 
-            <label className="form-label">Ano de Publicação</label>
-            <input
-              type="number"
-              className="form-control mb-3"
-              value={filtros.anoPublicacao}
-              onChange={(e) =>
-                setFiltros((prev) => ({ ...prev, anoPublicacao: e.target.value }))
-              }
-            />
+            <div className="mb-3">
+              <label className="form-label">Ano de Publicação</label>
+              <input
+                type="text"
+                className="form-control"
+                maxLength={4}
+                value={filtros.anoPublicacao}
+                placeholder="Ex: 2024"
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (/^\d*$/.test(val)) {
+                    setFiltros((prev) => ({
+                      ...prev,
+                      anoPublicacao: val,
+                    }));
+                  }
+                }}
+              />
+            </div>
           </div>
+
           <div className="modal-footer">
             <button className="btn btn-secondary" onClick={handleClose}>
               Fechar
+            </button>
+            <button className="btn btn-outline-danger" onClick={handleReset}>
+              Limpar Filtros
             </button>
           </div>
         </div>

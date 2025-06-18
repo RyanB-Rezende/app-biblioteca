@@ -59,18 +59,19 @@ const BookList = ({ livros, onEdit, onDelete, onStatusChange }) => {
                     : `${livro.descricao.slice(0, 100)}...`}
                 </p>
                 <div className="mb-2">
-                    {livro.autor && (
-                      <p className="mb-1">
-                        <strong>Autor:</strong> {livro.autor}
-                      </p>
-                    )}
-                    {livro.data_publicacao && (
-                      <p className="mb-1">
-                        <strong>Publicado em:</strong>{" "}
-                        {new Date(livro.data_publicacao).toLocaleDateString("pt-BR")}
-                      </p>
-                    )}
-                  </div>
+                  {livro.autor && (
+                    <p className="mb-1">
+                      <strong>Autor:</strong> {livro.autor}
+                    </p>
+                  )}
+                  {livro.data_publicacao && (
+                    <p className="mb-1">
+                      <strong>Publicado em:</strong>{" "}
+                      {livro.data_publicacao}
+                    </p>
+                  )}
+
+                </div>
 
                 {livro.descricao && livro.descricao.length > 100 && (
                   <button
@@ -98,8 +99,8 @@ const BookList = ({ livros, onEdit, onDelete, onStatusChange }) => {
                   <div className="mb-3 d-flex gap-1 flex-wrap">
                     <button
                       className={`btn btn-sm ${livro.status === "PENDENTE"
-                          ? "btn-primary"
-                          : "btn-outline-primary"
+                        ? "btn-primary"
+                        : "btn-outline-primary"
                         }`}
                       onClick={() => onStatusChange(livro.id, "PENDENTE")}
                     >
@@ -114,8 +115,8 @@ const BookList = ({ livros, onEdit, onDelete, onStatusChange }) => {
                     </button>
                     <button
                       className={`btn btn-sm ${livro.status === "CONCLUIDO"
-                          ? "btn-success"
-                          : "btn-outline-success"
+                        ? "btn-success"
+                        : "btn-outline-success"
                         }`}
                       onClick={() => onStatusChange(livro.id, "CONCLUIDO")}
                     >
