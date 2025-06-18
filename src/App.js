@@ -3,27 +3,32 @@ import Header from './components/Header';
 import Footer from './components/Footer';
 import BookForm from './components/bookform';
 import BookList from './components/booklist';
-import { filterBooks } from './components/filters';
 import UpdateForm from './components/UpdateForm';
 import { addBook, getLivros, deleteLivros, updateLivros } from './components/book_services';
+import { filterBooks, FiltersWindow } from './components/filters';
 
 const App = () => {
   const [livros, setLivros] = useState([]);
   const [message, setMessage] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const [filtersVisible, setFiltersVisible] = useState(false);
   const [formVisible, setFormVisible] = useState(false);
   const [currentBook, setCurrentBook] = useState(null);
   const [showUpdate, setShowUpdate] = useState(false);
   const [showMessageBox, setShowMessageBox] = useState(false);
-  const [messageCountdown, setMessageCountdown] = useState(3); // segundos
+  const [messageCountdown, setMessageCountdown] = useState(3);
   const messageTimerRef = useRef(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const booksPerPage = 12;
-  const [selectedStatus, setSelectedStatus] = useState("TODOS");
-const [selectedMinRating, setSelectedMinRating] = useState(0);
-const [selectedYear, setSelectedYear] = useState("");
+
+  // ✅ ÚNICO STATE DE FILTROS
+  const [filtros, setFiltros] = useState({
+    status: "TODOS",
+    minRating: 0,
+    anoPublicacao: ""
+  });
 
   const searchInputRef = useRef(null);
   const autoCloseTimer = useRef(null);
@@ -48,7 +53,7 @@ const [selectedYear, setSelectedYear] = useState("");
   const showMessage = (msg) => {
     setMessage(msg);
     setShowMessageBox(true);
-    setMessageCountdown(3); // 3 segundos
+    setMessageCountdown(3);
 
     if (messageTimerRef.current) {
       clearInterval(messageTimerRef.current);
@@ -59,18 +64,16 @@ const [selectedYear, setSelectedYear] = useState("");
         if (prev <= 1) {
           clearInterval(messageTimerRef.current);
           setMessageCountdown(0);
-          // Espera a transição do CSS
           setTimeout(() => {
             setShowMessageBox(false);
             setMessage("");
-          }, 500); // 500ms = tempo do fade do CSS
+          }, 500);
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
   };
-
 
   const handleSave = async (book) => {
     try {
@@ -91,7 +94,7 @@ const [selectedYear, setSelectedYear] = useState("");
 
   const handleUpdate = async (updatedBook) => {
     try {
-      await updateLivros(currentBook.id, updatedBook); // ← aqui!
+      await updateLivros(currentBook.id, updatedBook);
       showMessage("✅ Livro atualizado!");
       setShowUpdate(false);
       setCurrentBook(null);
@@ -102,7 +105,6 @@ const [selectedYear, setSelectedYear] = useState("");
     }
   };
 
-
   const handleDelete = async (id) => {
     if (window.confirm("Apagar este livro?")) {
       await deleteLivros(id);
@@ -111,7 +113,6 @@ const [selectedYear, setSelectedYear] = useState("");
     }
   };
 
-  // Controle animado para BookForm aparecer e sumir
   useEffect(() => {
     if (showForm) {
       setFormVisible(true);
@@ -125,15 +126,14 @@ const [selectedYear, setSelectedYear] = useState("");
     fetchLivros();
   }, []);
 
-  // Filtro de pesquisa
- const filteredBooks = filterBooks(livros, {
-  query: searchQuery,
-  status: selectedStatus,        // novo state para filtro por status
-  minRating: selectedMinRating,  // novo state para filtro por nota
-  anoPublicacao: selectedYear    // novo state para filtro por ano
-});
+  // ✅ Usa o state 'filtros'
+  const filteredBooks = filterBooks(livros, {
+    query: searchQuery,
+    status: filtros.status,
+    minRating: filtros.minRating,
+    anoPublicacao: filtros.anoPublicacao
+  });
 
-  // Paginação
   const indexOfLastBook = currentPage * booksPerPage;
   const indexOfFirstBook = indexOfLastBook - booksPerPage;
   const currentBooks = filteredBooks.slice(indexOfFirstBook, indexOfLastBook);
@@ -143,7 +143,6 @@ const [selectedYear, setSelectedYear] = useState("");
     setCurrentPage(pageNumber);
   };
 
-  // Expansão/retração do search + timer
   const handleToggleSearch = () => {
     if (!isSearchExpanded) {
       setIsSearchExpanded(true);
@@ -198,38 +197,6 @@ const [selectedYear, setSelectedYear] = useState("");
         </div>
       )}
 
-        <select 
-  className="form-select"
-  value={selectedStatus}
-  onChange={(e) => setSelectedStatus(e.target.value)}
->
-  <option value="TODOS">Todos</option>
-  <option value="PENDENTE">Para Ler</option>
-  <option value="LENDO">Lendo</option>
-  <option value="CONCLUIDO">Concluído</option>
-</select>
-
-{/* Exemplo de filtro por nota mínima */}
-<input
-  type="number"
-  placeholder="Avaliação mínima"
-  className="form-control"
-  value={selectedMinRating}
-  min={0}
-  max={5}
-  step={0.1}
-  onChange={(e) => setSelectedMinRating(parseFloat(e.target.value) || "")}
-/>
-
-{/* Exemplo de filtro por ano */}
-<input
-  type="number"
-  placeholder="Ano de publicação"
-  className="form-control"
-  value={selectedYear}
-  onChange={(e) => setSelectedYear(e.target.value)}
-/>
-
       <div className="mb-3 d-flex justify-content-between align-items-center">
         <button
           className={`btn ${showForm ? "btn-secondary" : "btn-primary"}`}
@@ -253,7 +220,21 @@ const [selectedYear, setSelectedYear] = useState("");
             🔍
           </button>
         </div>
+        <div>
+          <FiltersWindow
+            visible={filtersVisible}
+            onClose={() => setFiltersVisible(false)}
+            filtros={filtros}
+            setFiltros={setFiltros}
+          />
 
+          <button
+            className="btn btn-outline-secondary"
+            onClick={() => setFiltersVisible(true)}
+          >
+            💡 Filtros Avançados
+          </button>
+        </div>
       </div>
 
       {formVisible && (
@@ -268,7 +249,7 @@ const [selectedYear, setSelectedYear] = useState("");
         onDelete={handleDelete}
         onStatusChange={handleStatusChange}
       />
-      {/* Botões de Paginação */}
+
       {totalPages > 1 && (
         <nav className="mt-4">
           <ul className="pagination justify-content-center">

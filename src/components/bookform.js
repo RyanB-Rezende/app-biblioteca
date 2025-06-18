@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect } from "react"; 
 import AvaliacaoInput from "./AvaliacaoInput"; // importa o input customizado
+import { normalizeYear } from "../utils/YearUtils";
 
 const BookForm = ({ onSave, currentBook, onCancel }) => {
   const [titulo, setTitulo] = useState("");
@@ -15,15 +16,14 @@ const BookForm = ({ onSave, currentBook, onCancel }) => {
       setTitulo(currentBook.titulo);
       setDescricao(currentBook.descricao);
       setCapa(currentBook.capa);
-      // formata para string com vírgula (ex: "3,5")
       setAvaliacao(
         currentBook.avaliacao !== undefined
           ? currentBook.avaliacao.toString().replace(".", ",")
           : "1,0"
       );
       setAutor(currentBook.autor || "");
-      setDataPublicacao(currentBook.data_publicacao || "");
-      setStatus("para-ler");
+      setDataPublicacao(currentBook.data_publicacao ? currentBook.data_publicacao.toString() : "");
+      setStatus(currentBook.status || "para-ler");
     } else {
       setTitulo("");
       setDescricao("");
@@ -37,16 +37,28 @@ const BookForm = ({ onSave, currentBook, onCancel }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    // normaliza o ano ao enviar o formulário
+    const anoNormalizado = normalizeYear(dataPublicacao);
+
+    if (anoNormalizado === null) {
+      alert(
+        `Ano inválido! Use um ano entre 1400 e ${new Date().getFullYear()} (4 dígitos).`
+      );
+      return;
+    }
+
     onSave({
       titulo,
       descricao,
       capa,
-      // converte string "x,y" para float x.y
       avaliacao: parseFloat(avaliacao.replace(",", ".")) || 0,
       autor,
-      data_publicacao: dataPublicacao,
-      status
+      data_publicacao: anoNormalizado,
+      status,
     });
+
+    // reset campos
     setTitulo("");
     setDescricao("");
     setCapa("");
@@ -84,12 +96,20 @@ const BookForm = ({ onSave, currentBook, onCancel }) => {
       </div>
 
       <div className="mb-3">
-        <label className="form-label">Data de Publicação</label>
+        <label className="form-label">Ano de Publicação</label>
         <input
-          type="date"
-          value={dataPublicacao}
-          onChange={(e) => setDataPublicacao(e.target.value)}
+          type="text"
           className="form-control"
+          maxLength={4}
+          value={dataPublicacao}
+          placeholder="Ex: 2024"
+          onChange={(e) => {
+            const val = e.target.value;
+            // permite só números e vazio
+            if (/^\d*$/.test(val)) {
+              setDataPublicacao(val);
+            }
+          }}
         />
       </div>
 
